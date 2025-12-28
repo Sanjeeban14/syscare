@@ -3,12 +3,16 @@
 #load common utilities
 source "$(dirname "$0")/lib/utils.sh"
 source "$(dirname "$0")/lib/health.sh"
+source "$(dirname "$0")/lib/cleanup.sh"
 
 case "${1:-}" in
 	check)
 		run_health_checks
 		;;
+	cleanup)
+		run_cleanup
+		;;
 	*)
-		echo "Usage: $0 check"
+		echo "Usage: $0 {check|cleanup}"
 		;;
 esac
