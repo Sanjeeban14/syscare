@@ -1,0 +1,11 @@
+# Generated files
+logs/
+reports/
+
+# Backup archives
+*.tar.gz
+
+# Editor files
+*.swp
+*.bak
+
