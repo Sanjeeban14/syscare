@@ -52,20 +52,14 @@ syscare/
 ├── logs/
 ├── README.md
 └── .gitignore
+```
 
-⚙️ Requirements
-Ubuntu Linux (or any GNU/Linux system)
-Bash
-Standard GNU utilities:
-tar
-df
-free
-uptime
-find
-
+## ⚙️ Requirements
+Ubuntu Linux (or any GNU/Linux system), Bash\
+Standard GNU utilities: tar, df, free, uptime, find\
 No external dependencies required.
 
-🚀 Usage
+## 🚀 Usage
 Make the script executable (once):
 
 ```bash
@@ -92,29 +86,26 @@ Run everything at once
 ```
 This runs:
 
-Health checks
-
-Cleanup
-
-Backup + rotation
+ - Health checks
+ - Cleanup
+ - Backup + rotation
 
 📝 Logging
 All operations are logged to:
 
-text
+```text
 logs/syscare.log
+```
 Logs include timestamps and severity levels:
 
-INFO
+ - INFO
+ - WARN
+ - ERROR
 
-WARN
-
-ERROR
-
-🔐 Safety Notes
+## 🔐 Safety Notes
 Cleanup runs in dry-run mode by default
 
-Deletions require explicit --apply
+Deletions require explicit ```--apply```
 
 Backup directory is excluded to prevent self-inclusion
 
@@ -122,22 +113,21 @@ Scripts exit immediately on errors
 
 This tool is designed to be safe by default.
 
-🎯 Learning Goals of This Project
+## 🎯 Learning Goals of This Project
 This project was created to practice:
 
-Linux system inspection
+ - Linux system inspection
 
-Bash scripting beyond basics
+ - Bash scripting beyond basics
 
-Modular script architecture
+ - Modular script architecture
 
-Defensive programming
+ - Defensive programming
 
-Git and GitHub (CLI-based workflow)
+ - Git and GitHub (CLI-based workflow)
+ - Reading and interpreting system state
 
-Reading and interpreting system state
-
-📌 Project Status
-✅ Completed
-🧪 Tested locally
+## 📌 Project Status
+✅ Completed\
+🧪 Tested locally\
 🔧 Open for future enhancements (cron support, config files, email reports)
