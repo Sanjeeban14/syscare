@@ -11,12 +11,19 @@ case "${1:-}" in
 		run_health_checks
 		;;
 	cleanup)
-		run_cleanup
+		run_cleanup "${@:2}"
 		;;
 	backup)
 		run_backup
 		;;
+	all)
+		info "Running all system modules..."
+		run_health_checks
+		run_cleanup "${@:2}"
+		run_backup
+		info "All tasks completed"
+		;;
 	*)
-		echo "Usage: $0 {check|cleanup}"
+		echo "Usage: $0 {check|cleanup|backup|all}"
 		;;
 esac

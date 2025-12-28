@@ -14,6 +14,17 @@ A Bash-based Linux system maintaiance and health automation tool.
  - Standard GNU utilities
 
 ## Usage
+
+Run individual modules:
+
 ```bash
-./syscare.sh <command>
+./syscare.sh check       # System health
+./syscare.sh cleanup     # Clean old logs/reports (dry-run by default)
+./syscare.sh cleanup --apply  # Actually delete
+./syscare.sh backup      # Backup project directory
+./syscare.sh all         # Run all modules sequentially
+```
+Configure retention and days via optional flags:
+```bash
+./syscare.sh cleanup --days=10 --apply
 ```

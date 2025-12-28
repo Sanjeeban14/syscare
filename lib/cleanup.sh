@@ -10,6 +10,13 @@ source "$(dirname "$0")/lib/utils.sh"
 DAYS_OLD=7
 DRY_RUN=true
 
+for arg in "$@"; do
+	case $arg in
+		--apply) DRY_RUN=false ;;
+		--days=*) DAYS_OLD="${ARG#*=}" ;;
+	esac
+done
+
 # ----------- File Cleanup ------------
 cleanup_directory() {
 	local dir="$1"
