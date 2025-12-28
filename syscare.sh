@@ -2,5 +2,13 @@
 
 #load common utilities
 source "$(dirname "$0")/lib/utils.sh"
+source "$(dirname "$0")/lib/health.sh"
 
-info "syscare started successfully"
+case "${1:-}" in
+	check)
+		run_health_checks
+		;;
+	*)
+		echo "Usage: $0 check"
+		;;
+esac
