@@ -6,6 +6,9 @@ source "$(dirname "$0")/lib/health.sh"
 source "$(dirname "$0")/lib/cleanup.sh"
 source "$(dirname "$0")/lib/backup.sh"
 
+trap 'warn "Syscare received SIGTERM; exiting cleanly"; exit 0' SIGTERM
+
+START_TIME_NS=$(date +%s%N)
 case "${1:-}" in
 	check)
 		run_health_checks
@@ -27,3 +30,7 @@ case "${1:-}" in
 		echo "Usage: $0 {check|cleanup|backup|all}"
 		;;
 esac
+END_TIME_NS=$(date +%s%N)
+DURATION=$(( ($END_TIME_NS - $START_TIME_NS) / 1000000 ))
+
+info "Health checks completed in ${DURATION} ms"

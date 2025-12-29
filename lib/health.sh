@@ -6,26 +6,37 @@
 
 source "$(dirname "$0")/lib/utils.sh"
 
+HEALTH_CPU_STATUS="ok"
+HEALTH_MEM_STATUS="ok"
+HEALTH_DISK_STATUS="ok"
+
+
 # ---------- CPU -----------
 check_cpu() {
-	require_command uptime
+	read -r LOAD_1 LOAD_5 LOAD_15 _ < /proc/loadavg
+	CPU_CORES=$(nproc)
 
-	local load
-	load=$(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | xargs)
-	
-	info "CPU Load (1 min): $load"
+	info "CPU Load (1m/5m/15m): $LOAD_1 $LOAD_5 $LOAD_15"
+
+	if (( $(echo "$LOAD_1 > $CPU_CORES" | bc -l) )); then
+		HEALTH_CPU_STATUS="high"
+		warn "High CPU load: load ($LOAD_1) > cores ($CPU_CORES)"
+	fi 
 }
+
 
 # --------- Memory ---------
 check_memory() {
-	require_command free
 
-	local used total percent 
-	read -r _ total used _ < <(free -m | awk '/Mem:/ {print $2, $3}') #total and used are two variables here assigned their respective values in megabytes (-m)
+	local used mem_total mem_available percent 
+	mem_total=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+	mem_available=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
 	
-	percent=$(( used * 100 / total ))
+	used=$(( $mem_total - $mem_available ))
+	percent=$(( used * 100 / mem_total ))
 
 	if (( percent > 80 )); then
+		HEALTH_MEM_STATUS="high"
 		warn "Memory usage high: ${percent}%"
 	else 
 		info "Memory usage: ${percent}%"
@@ -40,6 +51,7 @@ check_disk() {
 		local percent=${usage%\%}
 
 		if (( percent > 85 ));then
+			HEALTH_DISK_STATUS="high"
 			warn "Disk usage high on $mount: ${usage}"
 		else
 			info "Disk usage on $mount: ${usage}"
@@ -54,4 +66,14 @@ run_health_checks() {
 	check_cpu
 	check_memory
 	check_disk
+
+
+	cat <<EOF
+	{
+	  "cpu": "$HEALTH_CPU_STATUS",
+	  "memory": "$HEALTH_MEM_STATUS",
+	  "disk": "$HEALTH_DISK_STATUS"
+	}
+EOF
+
 }
