@@ -1,14 +1,14 @@
 	{
-		"timestamp": "2025-12-30T01:52:29+05:30",
+		"timestamp": "2025-12-30T03:45:35+05:30",
 		"health": {
   	"cpu": {
 		"status": "ok",
-    	"load_1m": "0.47",
+    	"load_1m": "0.33",
     	"threshold": "1.0"
   	},
   	"memory": {
     	"status": "ok",
-		"usage_percent": "49",
+		"usage_percent": "59",
 		"threshold": "80"
 	},
 	"disk": {
@@ -19,12 +19,12 @@
 		"cleanup": 	{
 		"status": "ok",
 		"deleted_files": "0",
-		"dry_run": true,
-		"days": 1
+		"dry_run": false,
+		"days": -1
 	},
 		"backup": 	{
 		"status": "ok",
-		"archive": "backup-2025-12-30T01:52:29+05:30.tar.gz",
+		"archive": "backup-2025-12-30T03:45:35+05:30.tar.gz",
 		"retention_count": "5"
 	}
 	}

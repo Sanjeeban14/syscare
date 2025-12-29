@@ -8,17 +8,18 @@ source "$(dirname "$0")/lib/utils.sh"
 
 BACKUP_SOURCE="$PROJECT_ROOT"
 BACKUP_DIR="$PROJECT_ROOT/backups"
-RETENTION_COUNT=${RETENTION_COUNT:-5}
 archive=""
-
-for arg in "$@"; do
-    case $arg in
-        --retain=*) RETENTION_COUNT="${arg#*=}" ;;
-    esac
-done
 
 # ------ Create backup -------
 run_backup() {
+	RETENTION_COUNT=${RETENTION_COUNT:-5}
+
+	for arg in "$@"; do
+		case $arg in
+			--retain=*) RETENTION_COUNT="${arg#*=}" ;;
+		esac
+	done
+
 	require_command tar
 
 	mkdir -p "$BACKUP_DIR"

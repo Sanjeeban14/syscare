@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# set -x
 # ===============================
 # syscare - common utilities
 # ===============================
@@ -14,12 +14,15 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_FILE="$PROJECT_ROOT/logs/syscare.log"
 
 
-# Default config file (local for testing)
-CONFIG_FILE="$PROJECT_ROOT/config/syscare.conf"
+with_module() {
+	
+		# subshell = isolated scope
+		local MODULE_NAME="$1"
+		shift
+			"$@"
+	
+}
 
-if [[ -f "$CONFIG_FILE" ]]; then
-  source "$CONFIG_FILE"
-fi
 
 # ---------- Colors ----------
 RED="\033[0;31m"
@@ -37,21 +40,12 @@ log_json(){
 
 	# timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 	timestamp="$(date --iso-8601=seconds)"
-
 	mkdir -p "$(dirname "$LOG_FILE")"
 #	echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
 	echo "{\"timestamp\":\"$timestamp\",\"module\":\"$module\",\"level\":\"$level\",\"message\":\"$message\"}" >> "$LOG_FILE"
 
 }
 
-with_module() {
-	
-		# subshell = isolated scope
-		local MODULE_NAME="$1"
-		shift
-			"$@"
-	
-}
 
 info(){
 	local module="${MODULE_NAME:-general}"
@@ -76,3 +70,13 @@ require_command() {
 		exit 1
 	}
 }
+
+# Default config file (local for testing)
+CONFIG_FILE="$PROJECT_ROOT/config/syscare.conf"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+	source "$CONFIG_FILE"
+  	with_module "general" info "Loaded config from $CONFIG_FILE"
+else
+	with_module "general" warn "Config file not found: $CONFIG_FILE, using defaults"
+fi

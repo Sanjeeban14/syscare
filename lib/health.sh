@@ -14,6 +14,11 @@ LOAD_1=0
 LOAD_5=0
 LOAD_15=0
 
+# Defaults (can be overridden via config or CLI)
+CPU_THRESHOLD=${CPU_THRESHOLD:-1.0}
+MEMORY_THRESHOLD=${MEMORY_THRESHOLD:-80}
+DISK_THRESHOLD=${DISK_THRESHOLD:-85}
+
 # ---------- CPU -----------
 check_cpu() {
 	read -r LOAD_1 LOAD_5 LOAD_15 _ < /proc/loadavg
@@ -39,7 +44,7 @@ check_memory() {
 	used=$(( $mem_total - $mem_available ))
 	percent=$(( used * 100 / mem_total ))
 
-	if (( $percent > $MEMORY_THRESHOLD )); then
+	if (( $percent > MEMORY_THRESHOLD )); then
 		HEALTH_MEM_STATUS="high"
 		warn "Memory usage high: ${percent}%"
 	else 
@@ -54,7 +59,7 @@ check_disk() {
 	df -h --output=source,pcent,target | tail -n +2 | while read -r fs usage mount; do
 		local percent_disk=${usage%\%}
 
-		if (( $percent_disk > $DISK_THRESHOLD ));then
+		if (( $percent_disk > DISK_THRESHOLD ));then
 			HEALTH_DISK_STATUS="high"
 			warn "Disk usage high on $mount: ${usage}"
 		else
@@ -86,6 +91,15 @@ EOF
 
 # --------- Run ----------
 run_health_checks() {
+	# parse CLI overrides passed to the run function
+	for arg in "$@"; do
+		case $arg in
+			--cpu-threshold=*) CPU_THRESHOLD="${arg#*=}" ;;
+			--memory-threshold=*) MEMORY_THRESHOLD="${arg#*=}" ;;
+			--disk-threshold=*) DISK_THRESHOLD="${arg#*=}" ;;
+		esac
+	done
+
 	info "Running system health checks..."
 
 	check_cpu

@@ -6,16 +6,10 @@
 
 source "$(dirname "$0")/lib/utils.sh"
 
-#Defaults
+# Defaults
 DAYS_OLD=${CLEANUP_DAYS:-7}
 DELETED_COUNT=0
-
-for arg in "$@"; do
-	case $arg in
-		--apply) DRY_RUN=false ;;
-		--days=*) DAYS_OLD="${arg#*=}" ;;
-	esac
-done
+DRY_RUN=${DRY_RUN:-true}
 
 # ----------- File Cleanup ------------
 cleanup_directory() {
@@ -33,7 +27,9 @@ cleanup_directory() {
 		else
 			info "Deleting: $file"
 			rm -f "$file"
-			(( DELETED_COUNT++ ))
+			info "Deleted"
+			DELETED_COUNT=$(( DELETED_COUNT + 1 ))
+			info "came to check 1"
 		fi
 	done
 }
@@ -52,6 +48,14 @@ EOF
 
 # --------- Run Cleanup --------
 run_cleanup() {
+	# parse CLI overrides passed to the run function
+	for arg in "$@"; do
+		case $arg in
+			--apply) DRY_RUN=false ;;
+			--days=*) DAYS_OLD="${arg#*=}" ;;
+		esac
+	done
+
 	info "Starting cleanup process"
 	info "Dry-run mode: $DRY_RUN"
 
@@ -59,5 +63,4 @@ run_cleanup() {
 	cleanup_directory "$PROJECT_ROOT/reports"
 
 	info "Cleanup completed"
-	# get_cleanup_json
 }

@@ -25,19 +25,19 @@ EOF
 START_TIME_NS=$(date +%s%N)
 case "${1:-}" in
 	check)
-		with_module "health" run_health_checks
+		with_module "health" run_health_checks "${@:2}"
 		;;
 	cleanup)
 		with_module "cleanup" run_cleanup "${@:2}"
 		;;
 	backup)
-		with_module "backup" run_backup
+		with_module "backup" run_backup "${@:2}"
 		;;
 	all)
 		info "Running all system modules..."
-		with_module "health" run_health_checks
+		with_module "health" run_health_checks "${@:2}"
 		with_module "cleanup" run_cleanup "${@:2}"
-		with_module "backup" run_backup
+		with_module "backup" run_backup "${@:2}"
 		info "All tasks completed"
 		emit_full_report
 		;;
