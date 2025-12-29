@@ -29,27 +29,44 @@ BLUE="\033[0;34m"
 RESET="\033[0m"
 
 # --------- Logging ----------
-log(){
+log_json(){
 	local level="$1"
-	local message="$2"
+	local module="$2"
+	local message="$3"
 	local timestamp
 
-	timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+	# timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+	timestamp="$(date --iso-8601=seconds)"
 
 	mkdir -p "$(dirname "$LOG_FILE")"
-	echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+#	echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+	echo "{\"timestamp\":\"$timestamp\",\"module\":\"$module\",\"level\":\"$level\",\"message\":\"$message\"}" >> "$LOG_FILE"
+
 }
+
+with_module() {
+	
+		# subshell = isolated scope
+		local MODULE_NAME="$1"
+		shift
+			"$@"
+	
+}
+
 info(){
-	echo -e "${BLUE}[INFO]${RESET} $1"
-	log "INFO" "$1"
+	local module="${MODULE_NAME:-general}"
+	echo -e "${BLUE}[INFO]${RESET} $1" >&2
+	log_json "INFO" "$module" "$1"
 }
 warn(){
-	echo -e "${YELLOW}[WARN]${RESET} $1"
-	log "WARN" "$1"
+	local module="${MODULE_NAME:-general}"
+	echo -e "${YELLOW}[WARN]${RESET} $1" >&2
+	log_json "WARN" "$module" "$1"
 }
 error(){
-	echo -e "${RED}[ERROR]${RESET} $1"
-	log "ERROR" "$1"
+	local module="${MODULE_NAME:-general}"
+	echo -e "${RED}[ERROR]${RESET} $1" >&2
+	log_json "ERROR" "$module" "$1"
 }
 
 # --------- Safety ---------

@@ -6,32 +6,48 @@ source "$(dirname "$0")/lib/health.sh"
 source "$(dirname "$0")/lib/cleanup.sh"
 source "$(dirname "$0")/lib/backup.sh"
 
-
 trap 'warn "Syscare received SIGTERM; exiting cleanly"; exit 0' SIGTERM
+
+emit_full_report() {
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
+
+	cat <<EOF
+	{
+		"timestamp": "$timestamp",
+		"health": $(get_health_json),
+		"cleanup": $(get_cleanup_json),
+		"backup": $(get_backup_json)
+	}
+EOF
+}
 
 START_TIME_NS=$(date +%s%N)
 case "${1:-}" in
 	check)
-		run_health_checks
+		with_module "health" run_health_checks
 		;;
 	cleanup)
-		run_cleanup "${@:2}"
+		with_module "cleanup" run_cleanup "${@:2}"
 		;;
 	backup)
-		run_backup
+		with_module "backup" run_backup
 		;;
 	all)
 		info "Running all system modules..."
-		run_health_checks
-		run_cleanup "${@:2}"
-		run_backup
+		with_module "health" run_health_checks
+		with_module "cleanup" run_cleanup "${@:2}"
+		with_module "backup" run_backup
 		info "All tasks completed"
+		emit_full_report
 		;;
 	*)
-		echo "Usage: $0 {check|cleanup|backup|all}"
+		echo "Usage: $0 {check|cleanup|backup|all}" >&2
 		;;
 esac
 END_TIME_NS=$(date +%s%N)
 DURATION=$(( ($END_TIME_NS - $START_TIME_NS) / 1000000 ))
 
 info "Health checks completed in ${DURATION} ms"
+
+

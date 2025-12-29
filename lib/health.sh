@@ -9,7 +9,10 @@ source "$(dirname "$0")/lib/utils.sh"
 HEALTH_CPU_STATUS="ok"
 HEALTH_MEM_STATUS="ok"
 HEALTH_DISK_STATUS="ok"
-
+percent=0
+LOAD_1=0
+LOAD_5=0
+LOAD_15=0
 
 # ---------- CPU -----------
 check_cpu() {
@@ -29,14 +32,14 @@ check_cpu() {
 # --------- Memory ---------
 check_memory() {
 
-	local used mem_total mem_available percent 
+	local used mem_total mem_available
 	mem_total=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
 	mem_available=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
 	
 	used=$(( $mem_total - $mem_available ))
 	percent=$(( used * 100 / mem_total ))
 
-	if (( percent > $MEMORY_THRESHOLD )); then
+	if (( $percent > $MEMORY_THRESHOLD )); then
 		HEALTH_MEM_STATUS="high"
 		warn "Memory usage high: ${percent}%"
 	else 
@@ -49,15 +52,36 @@ check_disk() {
 	require_command df
 	
 	df -h --output=source,pcent,target | tail -n +2 | while read -r fs usage mount; do
-		local percent=${usage%\%}
+		local percent_disk=${usage%\%}
 
-		if (( percent > $DISK_THRESHOLD ));then
+		if (( $percent_disk > $DISK_THRESHOLD ));then
 			HEALTH_DISK_STATUS="high"
 			warn "Disk usage high on $mount: ${usage}"
 		else
 			info "Disk usage on $mount: ${usage}"
 		fi
 	done
+}
+
+get_health_json() {
+	cat <<EOF
+{
+  	"cpu": {
+		"status": "$HEALTH_CPU_STATUS",
+    	"load_1m": "$LOAD_1",
+    	"threshold": "$CPU_THRESHOLD"
+  	},
+  	"memory": {
+    	"status": "$HEALTH_MEM_STATUS",
+		"usage_percent": "$percent",
+		"threshold": "$MEMORY_THRESHOLD"
+	},
+	"disk": {
+		"status": "$HEALTH_DISK_STATUS",
+		"threshold": "$DISK_THRESHOLD"
+	}
+}
+EOF
 }
 
 # --------- Run ----------
@@ -67,14 +91,5 @@ run_health_checks() {
 	check_cpu
 	check_memory
 	check_disk
-
-
-	cat <<EOF
-	{
-	  "cpu": "$HEALTH_CPU_STATUS",
-	  "memory": "$HEALTH_MEM_STATUS",
-	  "disk": "$HEALTH_DISK_STATUS"
-	}
-EOF
-
+	# get_health_json
 }

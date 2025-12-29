@@ -9,6 +9,7 @@ source "$(dirname "$0")/lib/utils.sh"
 BACKUP_SOURCE="$PROJECT_ROOT"
 BACKUP_DIR="$PROJECT_ROOT/backups"
 RETENTION_COUNT=${RETENTION_COUNT:-5}
+archive=""
 
 for arg in "$@"; do
     case $arg in
@@ -22,8 +23,8 @@ run_backup() {
 
 	mkdir -p "$BACKUP_DIR"
 
-	local timestamp archive
-	timestamp="$(date '+%Y-%m-%d-%H%M%S')"
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
 	archive="$BACKUP_DIR/backup-$timestamp.tar.gz"
 
 	info "Starting backup of $BACKUP_SOURCE"
@@ -36,6 +37,17 @@ run_backup() {
 	rotate_backups
 }
 
+get_backup_json() {
+	cat<<EOF
+	{
+		"status": "ok",
+		"archive": "$(basename "$archive")",
+		"retention_count": "$RETENTION_COUNT"
+	}
+EOF
+}
+
+
 # ------- Rotation --------
 rotate_backups() {
 	info "Applying backup rotation (keep last $RETENTION_COUNT)"
@@ -43,4 +55,5 @@ rotate_backups() {
 		warn "Removing old backup: $(basename "$old_backup")"
 		rm -r "$old_backup"
 	done
+	# get_backup_json
 }
