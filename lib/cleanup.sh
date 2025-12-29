@@ -7,13 +7,12 @@
 source "$(dirname "$0")/lib/utils.sh"
 
 #Defaults
-DAYS_OLD=7
-DRY_RUN=true
+DAYS_OLD=${CLEANUP_DAYS:-7}
 
 for arg in "$@"; do
 	case $arg in
 		--apply) DRY_RUN=false ;;
-		--days=*) DAYS_OLD="${ARG#*=}" ;;
+		--days=*) DAYS_OLD="${arg#*=}" ;;
 	esac
 done
 

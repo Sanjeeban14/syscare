@@ -15,10 +15,11 @@ HEALTH_DISK_STATUS="ok"
 check_cpu() {
 	read -r LOAD_1 LOAD_5 LOAD_15 _ < /proc/loadavg
 	CPU_CORES=$(nproc)
+	CPU_LIMIT=$(echo "$CPU_CORES * $CPU_THRESHOLD" | bc -l)
 
 	info "CPU Load (1m/5m/15m): $LOAD_1 $LOAD_5 $LOAD_15"
 
-	if (( $(echo "$LOAD_1 > $CPU_CORES" | bc -l) )); then
+	if (( $(echo "$LOAD_1 > $CPU_LIMIT" | bc -l) )); then
 		HEALTH_CPU_STATUS="high"
 		warn "High CPU load: load ($LOAD_1) > cores ($CPU_CORES)"
 	fi 
@@ -35,7 +36,7 @@ check_memory() {
 	used=$(( $mem_total - $mem_available ))
 	percent=$(( used * 100 / mem_total ))
 
-	if (( percent > 80 )); then
+	if (( percent > $MEMORY_THRESHOLD )); then
 		HEALTH_MEM_STATUS="high"
 		warn "Memory usage high: ${percent}%"
 	else 
@@ -50,7 +51,7 @@ check_disk() {
 	df -h --output=source,pcent,target | tail -n +2 | while read -r fs usage mount; do
 		local percent=${usage%\%}
 
-		if (( percent > 85 ));then
+		if (( percent > $DISK_THRESHOLD ));then
 			HEALTH_DISK_STATUS="high"
 			warn "Disk usage high on $mount: ${usage}"
 		else

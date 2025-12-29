@@ -8,7 +8,13 @@ source "$(dirname "$0")/lib/utils.sh"
 
 BACKUP_SOURCE="$PROJECT_ROOT"
 BACKUP_DIR="$PROJECT_ROOT/backups"
-RETENTION_COUNT=5
+RETENTION_COUNT=${RETENTION_COUNT:-5}
+
+for arg in "$@"; do
+    case $arg in
+        --retain=*) RETENTION_COUNT="${arg#*=}" ;;
+    esac
+done
 
 # ------ Create backup -------
 run_backup() {
@@ -24,7 +30,7 @@ run_backup() {
 	info "Creating archive" $(basename "$archive")
 
 	tar --exclude="$(basename "$BACKUP_DIR")" \
-	-czvf "$archive" -C "$(dirname "$BACKUP_SOURCE")" "$(basename "$BACKUP_SOURCE")"
+	-czf "$archive" -C "$(dirname "$BACKUP_SOURCE")" "$(basename "$BACKUP_SOURCE")" #-czvf for listing files during backup 
 
 	info "Backup completed successfully"
 	rotate_backups

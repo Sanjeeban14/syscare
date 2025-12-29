@@ -13,6 +13,14 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Default log file 
 LOG_FILE="$PROJECT_ROOT/logs/syscare.log"
 
+
+# Default config file (local for testing)
+CONFIG_FILE="$PROJECT_ROOT/config/syscare.conf"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+  source "$CONFIG_FILE"
+fi
+
 # ---------- Colors ----------
 RED="\033[0;31m"
 GREEN="\033[0;32m"

@@ -6,6 +6,7 @@ source "$(dirname "$0")/lib/health.sh"
 source "$(dirname "$0")/lib/cleanup.sh"
 source "$(dirname "$0")/lib/backup.sh"
 
+
 trap 'warn "Syscare received SIGTERM; exiting cleanly"; exit 0' SIGTERM
 
 START_TIME_NS=$(date +%s%N)
