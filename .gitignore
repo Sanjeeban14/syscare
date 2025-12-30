@@ -1,6 +1,7 @@
 # Generated files
 logs/
 reports/
+out.json
 
 # Backup archives
 *.tar.gz
