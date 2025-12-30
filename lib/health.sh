@@ -4,7 +4,7 @@
 # syscare - system health checks
 # ===============================
 
-source "$(dirname "$0")/lib/utils.sh"
+# source "$(dirname "$0")/lib/utils.sh"
 
 HEALTH_CPU_STATUS="ok"
 HEALTH_MEM_STATUS="ok"

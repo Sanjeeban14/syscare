@@ -7,20 +7,37 @@
 # Exit immediately on error, unset variable, or failure pipe
 set -euo pipefail
 
-# Project root directory (absolute path)
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Default log file 
-LOG_FILE="$PROJECT_ROOT/logs/syscare.log"
+#---------------------------------
+# Path resolution (dev vs installed)
+#----------------------------------
+
+UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SYSCARE_CODE_ROOT="$(cd "$UTILS_DIR/.." && pwd)"
+
+if [[ "$SYSCARE_CODE_ROOT" == "/usr/local/lib/syscare" ]]; then
+	SYSCARE_MODE="installed"
+else
+	SYSCARE_MODE="dev"
+fi
+
+# Paths by mode
+
+if [[ "$SYSCARE_MODE" == "installed" ]]; then
+	CONFIG_FILE="/etc/syscare/syscare.conf"
+	LOG_FILE="/var/log/syscare/syscare.log"
+	DATA_DIR="/var/lib/syscare"
+else
+	CONFIG_FILE="$SYSCARE_CODE_ROOT/config/syscare.conf"
+	LOG_FILE="$SYSCARE_CODE_ROOT/logs/syscare/log"
+	DATA_DIR="$SYSCARE_CODE_ROOT/backups"
+fi
 
 
-with_module() {
-	
-		# subshell = isolated scope
-		local MODULE_NAME="$1"
-		shift
-			"$@"
-	
+with_module() {	
+	local MODULE_NAME="$1"
+	shift
+		"$@"
 }
 
 
@@ -71,8 +88,7 @@ require_command() {
 	}
 }
 
-# Default config file (local for testing)
-CONFIG_FILE="$PROJECT_ROOT/config/syscare.conf"
+# -------- Config Loading ---------
 
 if [[ -f "$CONFIG_FILE" ]]; then
 	source "$CONFIG_FILE"

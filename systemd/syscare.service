@@ -1,0 +1,17 @@
+[Unit]
+Description=Syscare System Maintainance Tool
+Wants=network-onLine.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '/usr/local/bin/syscare all | jq .'
+User=root
+Group=root
+
+# journald logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

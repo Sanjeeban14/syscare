@@ -4,11 +4,16 @@
 # syscare - backup module
 # ===============================
 
-source "$(dirname "$0")/lib/utils.sh"
-
-BACKUP_SOURCE="$PROJECT_ROOT"
-BACKUP_DIR="$PROJECT_ROOT/backups"
 archive=""
+
+# Backup pths based on mode
+if [[ "$SYSCARE_MODE" == "dev" ]]; then
+	BACKUP_SOURCE="$SYSCARE_CODE_ROOT"
+	BACKUP_DIR="$SYSCARE_CODE_ROOT/backups"
+else
+	BACKUP_SOURCE="/etc/syscare"
+	BACKUP_DIR="$DATA_DIR/backups"
+fi
 
 # ------ Create backup -------
 run_backup() {
@@ -54,7 +59,6 @@ rotate_backups() {
 	info "Applying backup rotation (keep last $RETENTION_COUNT)"
 	ls -1t "$BACKUP_DIR"/backup-*.tar.gz 2>/dev/null | tail -n +"$((RETENTION_COUNT + 1))" | while read -r old_backup; do
 		warn "Removing old backup: $(basename "$old_backup")"
-		rm -r "$old_backup"
+		rm -f "$old_backup"
 	done
-	# get_backup_json
 }

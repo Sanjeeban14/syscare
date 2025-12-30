@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 
-#load common utilities
-source "$(dirname "$0")/lib/utils.sh"
-source "$(dirname "$0")/lib/health.sh"
-source "$(dirname "$0")/lib/cleanup.sh"
-source "$(dirname "$0")/lib/backup.sh"
+# ===============================
+# syscare - entrypoint
+# ===============================
+
+# Detect project root (dev vs installed)
+if [[ -d "$(dirname "$0")/lib" ]]; then
+	# Repo / dev mode
+	SYSCARE_ROOT="$(cd "$(dirname "$0")" && pwd)"
+else
+	# Installed mode
+	SYSCARE_ROOT="/usr/local/lib/syscare"
+fi
+
+export SYSCARE_ROOT
+
+# Load common utilities and modules
+source "$SYSCARE_ROOT/lib/utils.sh"
+source "$SYSCARE_ROOT/lib/health.sh"
+source "$SYSCARE_ROOT/lib/cleanup.sh"
+source "$SYSCARE_ROOT/lib/backup.sh"
+ 
 
 trap 'warn "Syscare received SIGTERM; exiting cleanly"; exit 0' SIGTERM
 

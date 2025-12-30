@@ -4,8 +4,6 @@
 # syscare - cleanup module
 # ============================
 
-source "$(dirname "$0")/lib/utils.sh"
-
 # Defaults
 DAYS_OLD=${CLEANUP_DAYS:-7}
 DELETED_COUNT=0
@@ -57,8 +55,11 @@ run_cleanup() {
 	info "Starting cleanup process"
 	info "Dry-run mode: $DRY_RUN"
 
-	cleanup_directory "$PROJECT_ROOT/logs"
-	cleanup_directory "$PROJECT_ROOT/reports"
+	cleanup_directory "$(dirname "$LOG_FILE")"
+	
+	if [[ "$SYSCARE_MODE" == "dev" ]]; then
+		cleanup_directory "$SYSCARE_CODE_ROOT/reports"
+	fi
 
 	info "Cleanup completed"
 }
