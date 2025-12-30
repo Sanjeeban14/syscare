@@ -21,24 +21,22 @@ cleanup_directory() {
 	
 	info "Scanning $dir for files older than $DAYS_OLD days"
 
-	find "$dir" -type f -mtime +"$DAYS_OLD" | while read -r file; do
+	while read -r file; do
 		if [[ "$DRY_RUN" == true ]]; then
 			warn "[DRY_RUN] Would delete: $file" 
 		else
-			info "Deleting: $file"
+			warn "Deleting: $file"
 			rm -f "$file"
-			info "Deleted"
 			DELETED_COUNT=$(( DELETED_COUNT + 1 ))
-			info "came to check 1"
 		fi
-	done
+	done < <(find "$dir" -type f -mtime +"$DAYS_OLD")
 }
 
 get_cleanup_json() {
 	cat <<EOF
 	{
 		"status": "ok",
-		"deleted_files": "$DELETED_COUNT",
+		"deleted_files": $DELETED_COUNT,
 		"dry_run": $DRY_RUN,
 		"days": $DAYS_OLD
 	}

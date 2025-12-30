@@ -29,7 +29,7 @@ check_cpu() {
 
 	if (( $(echo "$LOAD_1 > $CPU_LIMIT" | bc -l) )); then
 		HEALTH_CPU_STATUS="high"
-		warn "High CPU load: load ($LOAD_1) > cores ($CPU_CORES)"
+		warn "High CPU load: load ($LOAD_1) > cores ($CPU_LIMIT)"
 	fi 
 }
 
