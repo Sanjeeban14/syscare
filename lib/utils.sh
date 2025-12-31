@@ -28,10 +28,12 @@ if [[ "$SYSCARE_MODE" == "installed" ]]; then
 	CONFIG_FILE="/etc/syscare/syscare.conf"
 	LOG_FILE="/var/log/syscare/syscare.log"
 	DATA_DIR="/var/lib/syscare"
+	PENDING_DIR="$DATA_DIR/reports/pending"
 else
 	CONFIG_FILE="$SYSCARE_CODE_ROOT/config/syscare.conf"
 	LOG_FILE="$SYSCARE_CODE_ROOT/logs/syscare/log"
 	DATA_DIR="$SYSCARE_CODE_ROOT/backups"
+	PENDING_DIR="$SYSCARE_CODE_ROOT/reports/pending"
 fi
 
 
@@ -147,8 +149,40 @@ emit_backup_report() {
 EOF
 }
 
+# ----- Retry Queue -----
+queue_report() {
+	local json_file="$1"
+	local ts="$(date +%s)"
+	cp "$json_file" "$PENDING_DIR/report-$ts.json"
+	warn "Report queued for retry"
+}
+
 # ------ Backend Reporting ------
 
+post_json() {
+	local file="$1"
+
+	curl -s -X POST "$BACKEND_URL" \
+		-H "Content-Type: application/json" \
+		-d @"$file"
+}
+
+flush_pending_reports() {
+	[[ ! -d "$PENDING_DIR" ]] && return 0
+
+	for file in "$PENDING_DIR"/*.json; do
+		[[ -e "$file" ]] || return 0
+
+		curl -sf "$BACKEND_HEALTH_URL" >/dev/null || return 0
+
+		if post_json "$file"; then
+			rm -f "$file"
+			info "Sent queued report: $(basename "$file")"
+		else
+			return 0
+		fi
+	done
+}
 
 send_report() {
 	local json_file="$1"
@@ -157,15 +191,19 @@ send_report() {
 
 	[[ ! -f "${json_file}" ]] && return 0 # no json
 
+	mkdir -p "$PENDING_DIR"
+
+	flush_pending_reports
+
 	#health check for fast fail
 	if ! curl -sf "$BACKEND_HEALTH_URL" >/dev/null; then
-		warn "Backend unavailable, skipping report"
+		queue_report "$json_file"
+		warn "Backend unavailable, will try to report next time"
 		return 0
 	fi
 
 	# sending report
-	curl -s -X POST "$BACKEND_URL" \
-		-H "Content-Type: application/json" \
-		-d @"$json_file" \
-		|| warn "Backend report send failed"
+	if ! post_json "$json_file"; then
+		queue_report "$json_file"
+	fi
 }

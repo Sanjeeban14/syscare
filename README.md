@@ -17,7 +17,7 @@
 * JSON output for integration with dashboards or backend systems
 * Supports **development mode** (repo) and **installed mode**
 * Systemd service and timer for daily automation
-
+* Optional **Node.js backend** to collect JSON reports centrally
 ---
 
 ## Project Structure
@@ -36,7 +36,7 @@
 ├── reports/
 ├── syscare.sh         # Main CLI entrypoint
 ├── install.sh         # Install script for system-wide usage
-├── backend/           # (Future) optional JSON report backend
+├── syscare-backend/   # Node.js backend API for collecting JSON reports
 ├── README.md
 └── out.json           # Latest full report (optional)
 ```
@@ -185,9 +185,73 @@ systemctl list-timers | grep syscare
 ```
 
 * JSON reports are logged to `journald` or `/var/log/syscare/syscare.log`
+View logs (journald)
+```bash
+journalctl -u syscare.service
+```
+Follow logs live:
+```bash
+journalctl -u syscare.service -f
+```
 
 > **Tip:** For testing, you can set `OnUnitActiveSec=20s` in the timer and reset to `1d` for daily execution later.
 
+Do this after every change:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart syscare.timer
+
+```
+---
+## Backend Integration (Optional)
+
+Syscare can send its JSON reports to a central backend server.
+
+The backend is a **Node.js + Express REST API** that accepts reports via HTTP.
+
+### Backend Features
+
+* REST API (`/api/health`)
+* Health endpoint (`/api/health`)
+* Stores JSON reports on disk
+* Designed to run as a **systemd service**
+
+### Backend Installation
+
+From the syscare repo root:
+
+```bash
+chmod +x install-backend.sh
+./install-backend.sh
+```
+This wil:
+ - Verify Node.js(>=18)
+ - Optionally install/upgrade Node.js with user content
+ - Install backend dependencies
+ - Install and register ```syscare-backend.service```
+Enable backend:
+```bash
+sudo systemctl enable --now syscare-backend.service
+```
+Verify backend health:
+```bash
+curl http://localhost:3000/api/health
+```
+Expected output:
+```json
+{ "status": "ok" }
+```
+
+### Sending Reports from Syscare
+When backend reporting is enabled, syscare sends its final JSON report automatically at the end of execution.
+
+No changes to core syscare commands are required.
+```yaml
+# Backend reporting
+BACKEND_ENABLED=true
+BACKEND_URL=http://localhost:3000/api/reports
+BACKEND_HEALTH_URL=http://localhost:3000/api/health
+```
 ---
 
 ## Development Mode
@@ -204,13 +268,48 @@ systemctl list-timers | grep syscare
 
 ## Future Enhancements
 
-* **Backend integration**: send JSON reports to a central server
+* **Backend enhancements**: alerts, authentication, dashboards
 * **Alerts & notifications**: e.g., email if thresholds are exceeded
 * Packaging as `.deb` or `.rpm` for easier installation
 * Hardening and security improvements
 
 ---
+## Uninstall
 
+### Remove Syscare Agent
+
+```bash
+chmod 755 uninstall.sh
+./uninstall.sh
+```
+or (minimally)
+```bash
+chmod +rx uninstall.sh
+./uninstall.sh
+```
+This removes syscare binaries, configs, logs, backups, and systemd units.
+
+### Remove Syscare Backend
+
+```bash
+chmod 755 uninstall-backend.sh
+./uninstall-backend.sh
+```
+or (minimally)
+```bash
+chmod +rx uninstall-backend.sh
+./uninstall-backend.sh
+```
+--
+### Verify
+```bash
+ls -l uninstall.sh uninstall-backend.sh
+```
+Your should see:
+```text
+-rwxr-xr-x
+```
+---
 ## License
 
 MIT License — free to use, modify, and share.

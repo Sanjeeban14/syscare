@@ -22,6 +22,9 @@ sudo cp "$SRC_DIR/config/syscare.conf" "$CONFIG_DIR/"
 echo "Installing syscare binary..."
 sudo install -m 755 "$SRC_DIR/bin/syscare" "$BIN_DIR/syscare"
 
+echo "Creating data directories..."
+sudo mkdir -p "$DATA_DIR/reports/pending"
+
 if [[ -d "$SRC_DIR/systemd" ]]; then
     echo "Installing systemd units..."
     sudo cp "$SRC_DIR/systemd/"*.service "$SRC_DIR/systemd/"*.timer /etc/systemd/system
