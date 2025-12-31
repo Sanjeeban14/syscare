@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-12-31T18:45:56+05:30",
+  "cleanup": {
+    "status": "ok",
+    "deleted_files": 0,
+    "dry_run": false,
+    "days": 2
+  }
+}

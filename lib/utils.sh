@@ -7,6 +7,7 @@
 # Exit immediately on error, unset variable, or failure pipe
 set -euo pipefail
 
+OUTPUT_JSON="$SYSCARE_ROOT/out.json"
 
 #---------------------------------
 # Path resolution (dev vs installed)
@@ -96,3 +97,75 @@ if [[ -f "$CONFIG_FILE" ]]; then
 else
 	with_module "general" warn "Config file not found: $CONFIG_FILE, using defaults"
 fi
+
+
+# --------- Writing JSON files ---------
+emit_full_report() {
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
+
+	cat > "$OUTPUT_JSON" <<EOF 
+	{
+		"timestamp": "$timestamp",
+		"health": $(get_health_json),
+		"cleanup": $(get_cleanup_json),
+		"backup": $(get_backup_json)
+	}
+EOF
+}
+emit_health_report() {
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
+
+	cat > "$OUTPUT_JSON" <<EOF 
+	{
+		"timestamp": "$timestamp",
+		"health": $(get_health_json)
+	}
+EOF
+}
+emit_cleanup_report() {
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
+
+	cat > "$OUTPUT_JSON" <<EOF 
+	{
+		"timestamp": "$timestamp",
+		"cleanup": $(get_cleanup_json)
+	}
+EOF
+}
+emit_backup_report() {
+	local timestamp
+	timestamp="$(date --iso-8601=seconds)"
+
+	cat > "$OUTPUT_JSON" <<EOF 
+	{
+		"timestamp": "$timestamp",
+		"backup": $(get_backup_json)
+	}
+EOF
+}
+
+# ------ Backend Reporting ------
+
+
+send_report() {
+	local json_file="$1"
+
+	[[ "${BACKEND_ENABLED:-false}" != "true" ]] && return 0 # backend inactive
+
+	[[ ! -f "${json_file}" ]] && return 0 # no json
+
+	#health check for fast fail
+	if ! curl -sf "$BACKEND_HEALTH_URL" >/dev/null; then
+		warn "Backend unavailable, skipping report"
+		return 0
+	fi
+
+	# sending report
+	curl -s -X POST "$BACKEND_URL" \
+		-H "Content-Type: application/json" \
+		-d @"$json_file" \
+		|| warn "Backend report send failed"
+}

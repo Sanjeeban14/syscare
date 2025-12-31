@@ -2,6 +2,7 @@
 logs/
 reports/
 out.json
+syscare-backend/node_modules/
 
 # Backup archives
 *.tar.gz
