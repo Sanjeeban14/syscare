@@ -4,18 +4,10 @@
 # syscare - cleanup module
 # ============================
 
-source "$(dirname "$0")/lib/utils.sh"
-
-#Defaults
-DAYS_OLD=7
-DRY_RUN=true
-
-for arg in "$@"; do
-	case $arg in
-		--apply) DRY_RUN=false ;;
-		--days=*) DAYS_OLD="${ARG#*=}" ;;
-	esac
-done
+# Defaults
+DAYS_OLD=${CLEANUP_DAYS:-7}
+DELETED_COUNT=0
+DRY_RUN=${DRY_RUN:-true}
 
 # ----------- File Cleanup ------------
 cleanup_directory() {
@@ -27,23 +19,47 @@ cleanup_directory() {
 	
 	info "Scanning $dir for files older than $DAYS_OLD days"
 
-	find "$dir" -type f -mtime +"$DAYS_OLD" | while read -r file; do
+	while read -r file; do
 		if [[ "$DRY_RUN" == true ]]; then
 			warn "[DRY_RUN] Would delete: $file" 
 		else
-			info "Deleting: $file"
+			warn "Deleting: $file"
 			rm -f "$file"
+			DELETED_COUNT=$(( DELETED_COUNT + 1 ))
 		fi
-	done
+	done < <(find "$dir" -type f -mtime +"$DAYS_OLD")
 }
+
+get_cleanup_json() {
+	cat <<EOF
+	{
+		"status": "ok",
+		"deleted_files": $DELETED_COUNT,
+		"dry_run": $DRY_RUN,
+		"days": $DAYS_OLD
+	}
+EOF
+}
+
 
 # --------- Run Cleanup --------
 run_cleanup() {
+	# parse CLI overrides passed to the run function
+	for arg in "$@"; do
+		case $arg in
+			--apply) DRY_RUN=false ;;
+			--days=*) DAYS_OLD="${arg#*=}" ;;
+		esac
+	done
+
 	info "Starting cleanup process"
 	info "Dry-run mode: $DRY_RUN"
 
-	cleanup_directory "$PROJECT_ROOT/logs"
-	cleanup_directory "$PROJECT_ROOT/reports"
+	cleanup_directory "$(dirname "$LOG_FILE")"
+	
+	if [[ "$SYSCARE_MODE" == "dev" ]]; then
+		cleanup_directory "$SYSCARE_CODE_ROOT/reports"
+	fi
 
 	info "Cleanup completed"
 }

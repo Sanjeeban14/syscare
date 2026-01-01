@@ -1,0 +1,13 @@
+[Unit]
+Description=Syscare Backend API
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /usr/local/lib/syscare-backend/src/server.js
+Restart=always
+# User=syscare
+# Group=syscare
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

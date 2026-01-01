@@ -1,0 +1,15 @@
+[Unit]
+Description=Run syscare daily
+
+[Timer]
+# OnBootSec=20s
+# OnUnitActiveSec=20s
+# AccuracySec=1s
+# Persistent=false
+
+OnCalendar=daily
+AccuracySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
