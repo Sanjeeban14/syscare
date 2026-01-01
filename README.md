@@ -162,6 +162,9 @@ RETENTION_COUNT=5
 syscare all --cpu-threshold=0.8 --memory-threshold=75
 ```
 
+When retry queue is enabled, failed reports are stored locally and retried later.
+No manual intervention is required.
+
 ---
 
 ## Systemd Integration
@@ -252,6 +255,16 @@ BACKEND_ENABLED=true
 BACKEND_URL=http://localhost:3000/api/reports
 BACKEND_HEALTH_URL=http://localhost:3000/api/health
 ```
+
+### Retry Queue (Failure-Safe Reporting)
+Backend reporting in syscare is **best-effort and non-blocking**
+
+If the backend is unavialable (network down, service stopped, etc):
+ - JSON reports are **queued locally** in pending directory.
+  - Core syscare operations (health, cleanup, backup) still complete successfully.
+   - Pending reports are **retried automatically** on the next successful run.
+
+This design ensures system maintainance **never depends on backend availability**, making syscare safe for production systems.
 ---
 
 ## Development Mode

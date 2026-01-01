@@ -2,8 +2,13 @@
 Description=Run syscare daily
 
 [Timer]
-OnUnitActiveSec=20s
-AccuracySec=1s
+# OnBootSec=20s
+# OnUnitActiveSec=20s
+# AccuracySec=1s
+# Persistent=false
+
+OnCalendar=daily
+AccuracySec=1h
 Persistent=true
 
 [Install]
