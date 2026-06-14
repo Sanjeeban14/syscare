@@ -1,41 +1,50 @@
 #!/usr/bin/env bash
 # set -x
-# ===============================
-# syscare - common utilities
-# ===============================
+# Syscare - common utilities
 
 # Exit immediately on error, unset variable, or failure pipe
 set -euo pipefail
 
-OUTPUT_JSON="$SYSCARE_ROOT/out.json"
-
-#---------------------------------
 # Path resolution (dev vs installed)
-#----------------------------------
 
 UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SYSCARE_CODE_ROOT="$(cd "$UTILS_DIR/.." && pwd)"
 
 if [[ "$SYSCARE_CODE_ROOT" == "/usr/local/lib/syscare" ]]; then
-	SYSCARE_MODE="installed"
+    SYSCARE_MODE="installed"
 else
-	SYSCARE_MODE="dev"
+    SYSCARE_MODE="dev"
 fi
 
 # Paths by mode
 
 if [[ "$SYSCARE_MODE" == "installed" ]]; then
-	CONFIG_FILE="/etc/syscare/syscare.conf"
-	LOG_FILE="/var/log/syscare/syscare.log"
-	DATA_DIR="/var/lib/syscare"
-	PENDING_DIR="$DATA_DIR/reports/pending"
-else
-	CONFIG_FILE="$SYSCARE_CODE_ROOT/config/syscare.conf"
-	LOG_FILE="$SYSCARE_CODE_ROOT/logs/syscare/log"
-	DATA_DIR="$SYSCARE_CODE_ROOT/backups"
-	PENDING_DIR="$SYSCARE_CODE_ROOT/reports/pending"
-fi
 
+    CONFIG_FILE="/etc/syscare/syscare.conf"
+
+    LOG_FILE="/var/log/syscare/syscare.log"
+
+    DATA_DIR="/var/lib/syscare"
+
+    REPORTS_DIR="$DATA_DIR/reports"
+    PENDING_DIR="$REPORTS_DIR/pending"
+
+    OUTPUT_JSON="$REPORTS_DIR/out.json"
+
+else
+
+    CONFIG_FILE="$SYSCARE_CODE_ROOT/config/syscare.conf"
+
+    LOG_FILE="$SYSCARE_CODE_ROOT/logs/syscare.log"
+
+    DATA_DIR="$SYSCARE_CODE_ROOT/backups"
+
+    REPORTS_DIR="$SYSCARE_CODE_ROOT/reports"
+    PENDING_DIR="$REPORTS_DIR/pending"
+
+    OUTPUT_JSON="$REPORTS_DIR/out.json"
+
+fi
 
 with_module() {	
 	local MODULE_NAME="$1"
@@ -111,7 +120,8 @@ emit_full_report() {
 		"timestamp": "$timestamp",
 		"health": $(get_health_json),
 		"cleanup": $(get_cleanup_json),
-		"backup": $(get_backup_json)
+		"backup": $(get_backup_json),
+		"temp-cleanup": $(get_temp_cleanup_json)
 	}
 EOF
 }
@@ -125,6 +135,19 @@ emit_health_report() {
 		"health": $(get_health_json)
 	}
 EOF
+}
+emit_temp_cleanup_report() {
+
+    local timestamp
+    timestamp="$(date --iso-8601=seconds)"
+
+    cat > "$OUTPUT_JSON" <<EOF
+{
+    "timestamp": "$timestamp",
+    "temp_cleanup": $(get_temp_cleanup_json)
+}
+EOF
+
 }
 emit_cleanup_report() {
 	local timestamp

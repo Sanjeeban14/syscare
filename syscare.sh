@@ -20,6 +20,7 @@ source "$SYSCARE_ROOT/lib/utils.sh"
 source "$SYSCARE_ROOT/lib/health.sh"
 source "$SYSCARE_ROOT/lib/cleanup.sh"
 source "$SYSCARE_ROOT/lib/backup.sh"
+source "$SYSCARE_ROOT/lib/temp_cleanup.sh"
 
 trap 'warn "Syscare received SIGTERM; exiting cleanly"; exit 0' SIGTERM
 
@@ -33,6 +34,10 @@ case "${1:-}" in
 		with_module "cleanup" run_cleanup "${@:2}"
 		emit_cleanup_report
 		;;
+	temp-clean)
+		with_module "temp_cleanup" run_temp_cleanup "${@:2}"
+		emit_temp_cleanup_report
+		;;
 	backup)
 		with_module "backup" run_backup "${@:2}"
 		emit_backup_report
@@ -42,11 +47,12 @@ case "${1:-}" in
 		with_module "health" run_health_checks "${@:2}"
 		with_module "cleanup" run_cleanup "${@:2}"
 		with_module "backup" run_backup "${@:2}"
+		with_module "temp_cleanup" run_temp_cleanup "${@:2}"
 		info "All tasks completed"
 		emit_full_report
 		;;
 	*)
-		echo "Usage: $0 {check|cleanup|backup|all}" >&2
+		echo "Usage: $0 {check|cleanup|backup|temp-cleanup|all}" >&2
 		;;
 esac
 END_TIME_NS=$(date +%s%N)

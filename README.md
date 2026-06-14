@@ -1,6 +1,8 @@
 # Syscare — Linux System Maintenance Tool
 
 **Syscare** is a modular Bash-based system maintenance agent for Ubuntu Linux. It is designed to be **reliable, automated and machine-freindly**, with optional centralized reporting.
+![Screenshot of syscare](./images/Picture1.png)
+![Screenshot of syscare](./images/Picture2.png)
 
 Syscare provides:
 
@@ -31,6 +33,7 @@ Syscare provides:
 │   └── syscare.conf     # Configuration file
 ├── lib/
 │   ├── backup.sh
+│   ├── temp-cleanup.sh
 │   ├── cleanup.sh
 │   ├── health.sh
 │   └── utils.sh
@@ -102,6 +105,9 @@ syscare all | jq .
 syscare check             # Run health checks
 syscare cleanup           # Run cleanup (dry-run by default)
 syscare cleanup --apply   # Apply cleanup (delete files)
+syscare temp-cleanup      # Run temporary files and cache cleanup (dry-run by default)
+syscare temp-cleanup --apply  # Apply temporary files and cache cleanup for files older than an week 
+syscare temp-cleanup --purge  # Apply temporary files and cache cleanup for all time 
 syscare backup            # Run backup with retention
 syscare all               # Run all modules and emit JSON report
 ```
@@ -313,6 +319,7 @@ Syscare is a **reliability-focused Linux maintenance agent** with:
 * Modular bash design
 * Structured JSON output
 * systemd automation
+* clean temporary and cache files
 * Optional, failure-safe backend reporting
 
 Designed for **real systems**, not demos.
